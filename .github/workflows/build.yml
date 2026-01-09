@@ -54,6 +54,11 @@ jobs:
           name: frontend-dist
           path: ./afl-tracker-web/dist
 
+      - name: 'Debug OIDC Claims'
+        run: |
+          # This outputs the 'repository' claim as GitHub sees it
+          echo "Repo claim: ${{ github.repository }}"
+
       - name: Authenticate to Google Cloud
         id: gcloud-auth
         uses: google-github-actions/auth@v2

@@ -4,6 +4,7 @@ on: [push]
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    environment: dev
     permissions:
       contents: read
       id-token: write
@@ -36,6 +37,7 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
     needs: build-and-test
+    environment: dev
     permissions:
       contents: read
       id-token: write

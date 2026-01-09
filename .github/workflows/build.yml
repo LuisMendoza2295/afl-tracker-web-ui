@@ -1,0 +1,83 @@
+name: build-test-and-push-image
+run-name: Build AFL tracker web UI by @${{ github.actor }}
+on: [push]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.12'
+          cache: 'npm'
+          cache-dependency-path: './afl-tracker-web/package-lock.json'
+        
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./afl-tracker-web
+
+      - name: Build Vue app
+        run: npm run build
+        working-directory: ./afl-tracker-web
+      
+      - name: Upload built artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: afl-tracker-web/dist
+
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      image_uri: ${{ steps.push_step.outputs.IMAGE_URI }}
+    
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      
+      - name: Download native runner artifact
+        uses: actions/download-artifact@v4
+        with:
+            name: native-runner
+            path: ./afl-tracker-web/dist
+
+      - name: Authenticate to Google Cloud
+        id: gcloud-auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Login to Artifact Registry
+        uses: docker/login-action@v3
+        with:
+            registry: ${{ vars.GCP_REGION }}-docker.pkg.dev
+            username: oauth2accesstoken
+            password: ${{ steps.gcloud-auth.outputs.access_token }}
+
+      - name: Build and Push Docker Image
+        id: push_step
+        env:
+          IMAGE_NAME: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/afl-tracker-repo/afl-tracker-web
+        run: |
+          ls -lh dist/
+          docker build \
+            -t $IMAGE_NAME:$GITHUB_SHA \
+            -t $IMAGE_NAME:latest \
+            .
+          docker push $IMAGE_NAME:$GITHUB_SHA
+          docker push $IMAGE_NAME:latest
+          echo "IMAGE_URI=$IMAGE_NAME:$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+        working-directory: ./afl-tracker-web

@@ -29,9 +29,11 @@
 
   <p v-if="isLoading">Loading data...</p>
   <p v-else-if="error">Error loading data: {{ error.message }}</p>
-  <ul v-else>
-    <li v-for="(item, index) in items" :key="index">{{ item }}</li>
-  </ul>
+  <div v-else>
+    <div v-for="(item, index) in items" :key="index">
+      <img :src="item" alt="Tracker item">
+    </div>
+  </div>
 </template>
 
 <style scoped></style>

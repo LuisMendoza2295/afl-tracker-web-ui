@@ -1,0 +1,7 @@
+config:
+  gcp:project: afl-tracker-482307
+  gcp:region: us-east1
+  afl-tracker-web-ui:artifactRepoName: afl-tracker-repo
+  afl-tracker-web-ui:cloudRunServiceName: afl-tracker-web-service
+  afl-tracker-web-ui:infra-sa-email:
+    secure: AAABAC4H/5x0T0HJ4ARcFwB/Oxkiw5p2YvEPuXSoZ89S8rejSI7/qWcPNIzCiMczh81wnuLL3c8Jwzcqp1lQgoHh9Mr4QWUCaq65RGGW7IMRtD2ySSdn

@@ -46,11 +46,11 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       
-      - name: Download native runner artifact
+      - name: Download disy artifact
         uses: actions/download-artifact@v4
         with:
-            name: native-runner
-            path: ./afl-tracker-web/dist
+          name: frontend-dist
+          path: ./afl-tracker-web/dist
 
       - name: Authenticate to Google Cloud
         id: gcloud-auth
@@ -63,9 +63,9 @@ jobs:
       - name: Login to Artifact Registry
         uses: docker/login-action@v3
         with:
-            registry: ${{ vars.GCP_REGION }}-docker.pkg.dev
-            username: oauth2accesstoken
-            password: ${{ steps.gcloud-auth.outputs.access_token }}
+          registry: ${{ vars.GCP_REGION }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.gcloud-auth.outputs.access_token }}
 
       - name: Build and Push Docker Image
         id: push_step

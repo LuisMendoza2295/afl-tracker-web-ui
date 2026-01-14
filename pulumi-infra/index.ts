@@ -32,7 +32,7 @@ const githubProvider = gcp.iam.getWorkloadIdentityPoolProviderOutput({
 // Bind WIF Pool Identity to existing infra-sa
 new gcp.serviceaccount.IAMMember("wif-sa-token-creator", {
   serviceAccountId: pulumi.interpolate`${infraSA.name}`,
-  member: pulumi.interpolate`$principalSet://iam.googleapis.com/${githubPool.name}/attribute.repository/${githubRepo}`,
+  member: pulumi.interpolate`principalSet://iam.googleapis.com/${githubPool.name}/attribute.repository/${githubRepo}`,
   role: "roles/iam.serviceAccountTokenCreator"
 })
 

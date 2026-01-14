@@ -29,9 +29,15 @@ const githubProvider = gcp.iam.getWorkloadIdentityPoolProviderOutput({
   workloadIdentityPoolProviderId: providerId,
 });
 
+new gcp.serviceaccount.IAMMember("wif-sa-actor", {
+  serviceAccountId: infraSA.name,
+  member: pulumi.interpolate`principalSet://iam.googleapis.com/${githubPool.name}/attribute.repository/${githubRepo}`,
+  role: "roles/iam.serviceAccountUser"
+});
+
 // Bind WIF Pool Identity to existing infra-sa
 new gcp.serviceaccount.IAMMember("wif-sa-token-creator", {
-  serviceAccountId: pulumi.interpolate`${infraSA.name}`,
+  serviceAccountId: infraSA.name,
   member: pulumi.interpolate`principalSet://iam.googleapis.com/${githubPool.name}/attribute.repository/${githubRepo}`,
   role: "roles/iam.serviceAccountTokenCreator"
 })
@@ -52,6 +58,7 @@ const cloudRunServiceName = config.require("cloudRunServiceName");
 const service = new gcp.cloudrunv2.Service(cloudRunServiceName, {
   location: region,
   template: {
+    serviceAccount: infraSA.email,
     containers: [{
       image: appImage,
       ports: {

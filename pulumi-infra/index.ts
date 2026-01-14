@@ -36,7 +36,7 @@ const wifActor = new gcp.serviceaccount.IAMMember("wif-sa-actor", {
 });
 
 // Bind WIF Pool Identity to existing infra-sa
-new gcp.serviceaccount.IAMMember("wif-sa-token-creator", {
+const wifTokenCreator = new gcp.serviceaccount.IAMMember("wif-sa-token-creator", {
   serviceAccountId: infraSA.name,
   member: pulumi.interpolate`principalSet://iam.googleapis.com/${githubPool.name}/attribute.repository/${githubRepo}`,
   role: "roles/iam.serviceAccountTokenCreator"
@@ -78,7 +78,7 @@ const service = new gcp.cloudrunv2.Service(cloudRunServiceName, {
   },
 },
 { 
-  dependsOn: [wifActor] 
+  dependsOn: [wifActor, wifTokenCreator], 
 });
 
 new gcp.cloudrunv2.ServiceIamMember("afl-tracker-web-invoker", {

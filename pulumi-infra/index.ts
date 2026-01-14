@@ -6,9 +6,12 @@ const gcpConfig = new pulumi.Config("gcp");
 
 const project = gcpConfig.require("project");
 const region = gcpConfig.require("region");
+
 const artifactRepoName = config.require("artifactRepoName");
 const imageTag = config.get("imageTag") || "latest";
 const infraSAEmail = config.requireSecret("infra-sa-email");
+const poolId = config.require("workload-identity-pool-id");
+const providerId = config.require("workload-identity-provider-id");
 
 const githubRepo = "LuisMendoza2295/afl-tracker-web-ui";
 
@@ -17,25 +20,13 @@ const infraSA = gcp.serviceaccount.getAccountOutput({
   accountId: infraSAEmail
 });
 
-// Create the WIF
-const githubPool = new gcp.iam.WorkloadIdentityPool("github-pool", {
-  workloadIdentityPoolId: "wif-github-pool",
-  displayName: "WIF Pool for Github actions"
+const githubPool = gcp.iam.getWorkloadIdentityPoolOutput({
+  workloadIdentityPoolId: poolId,
 });
 
-// Create OIDC Provider for Github
-const providerName = "github-provider";
-const githubProvider = new gcp.iam.WorkloadIdentityPoolProvider(providerName, {
-  displayName: "WIF Github Provider",
+const githubProvider = gcp.iam.getWorkloadIdentityPoolProviderOutput({
   workloadIdentityPoolId: githubPool.workloadIdentityPoolId,
-  workloadIdentityPoolProviderId: providerName,
-  attributeMapping: {
-    "google.subject": "assertion.sub",
-    "attribute.repository": "assertion.repository"
-  },
-  oidc: {
-    issuerUri: "https://token.actions.githubusercontent.com",
-  },
+  workloadIdentityPoolProviderId: providerId,
 });
 
 // Bind WIF Pool Identity to existing infra-sa

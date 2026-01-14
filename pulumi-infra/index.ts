@@ -29,7 +29,7 @@ const githubProvider = gcp.iam.getWorkloadIdentityPoolProviderOutput({
   workloadIdentityPoolProviderId: providerId,
 });
 
-new gcp.serviceaccount.IAMMember("wif-sa-actor", {
+const wifActor = new gcp.serviceaccount.IAMMember("wif-sa-actor", {
   serviceAccountId: infraSA.name,
   member: pulumi.interpolate`principalSet://iam.googleapis.com/${githubPool.name}/attribute.repository/${githubRepo}`,
   role: "roles/iam.serviceAccountUser"
@@ -76,6 +76,9 @@ const service = new gcp.cloudrunv2.Service(cloudRunServiceName, {
       maxInstanceCount: 2,
     },
   },
+},
+{ 
+  dependsOn: [wifActor] 
 });
 
 new gcp.cloudrunv2.ServiceIamMember("afl-tracker-web-invoker", {

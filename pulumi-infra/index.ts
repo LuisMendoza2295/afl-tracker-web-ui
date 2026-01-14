@@ -46,7 +46,8 @@ const artifactRegistry = new gcp.artifactregistry.Repository(artifactRepoName, {
 }, { protect: true });
 
 // Create CloudRun service
-const appImage = pulumi.interpolate`${artifactRegistry.registryUri}/afl-tracker-web:${imageTag}`;
+// const appImage = pulumi.interpolate`${artifactRegistry.registryUri}/afl-tracker-web:${imageTag}`;
+const appImage = pulumi.interpolate`${region}-docker.pkg.dev/${project}/${artifactRegistry.repositoryId}/afl-tracker-web:${imageTag}`;
 const cloudRunServiceName = config.require("cloudRunServiceName");
 const service = new gcp.cloudrunv2.Service(cloudRunServiceName, {
   location: region,

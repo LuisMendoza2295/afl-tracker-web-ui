@@ -17,6 +17,17 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.12'
+          cache: 'npm'
+          cache-dependency-path: './pulumi-infra/package-lock.json'
+      
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./pulumi-infra
+
       - name: Authenticate to Google Cloud
         id: gcloud-auth
         uses: google-github-actions/auth@v2

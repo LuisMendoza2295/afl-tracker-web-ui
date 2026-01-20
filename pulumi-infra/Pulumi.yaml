@@ -8,3 +8,4 @@ config:
   pulumi:tags:
     value:
       pulumi:template: typescript
+  afl-tracker-web-ui:infra-stack: LuisMendoza2295/afl-tracker-infra

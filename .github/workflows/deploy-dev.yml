@@ -6,6 +6,11 @@ on:
       image_tag:
         description: 'The image tag to deploy'
         required: true
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -35,6 +40,15 @@ jobs:
           token_format: 'access_token'
           workload_identity_provider: ${{ vars.WIF_PROVIDER }}
           service_account: ${{ vars.APP_DEPLOYER_SERVICE_ACCOUNT }}
+      
+      - name: Configure Pulumi for Google Cloud
+        run: |
+          pulumi config set gcp:project ${{ vars.GCP_PROJECT_ID }}
+          pulumi config set gcp:region ${{ vars.GCP_REGION }}
+          pulumi config set imageTag ${{ github.event.inputs.image_tag }}
+        working-directory: ./pulumi-infra
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
         
       - name: Pulumi Deploy
         uses: pulumi/actions@v6
@@ -45,8 +59,3 @@ jobs:
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           GCP_ACCESS_TOKEN: ${{ steps.gcloud-auth.outputs.access_token }}
-          PULUMI_CONFIG_PASSTHROUGH: | 
-                gcp:project=${{ vars.GCP_PROJECT_ID }},\
-                gcp:region=${{ vars.GCP_REGION }},\
-                app-image=${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/afl-tracker-repo/afl-tracker-web:${GITHUB_SHA},\
-                imageTag=${{ github.event.inputs.image_tag }}

@@ -13,10 +13,10 @@ const imageTag = config.get("imageTag") || "latest";
 // Get existing data from Pulumi infra stack
 const infraStack = new pulumi.StackReference(`${config.require("infra-stack")}/${env}`);
 
-const runtimeSAEmail = infraStack.getOutput("backendRuntimeSAEmail");
-const artifactRegistryName = infraStack.getOutput("artifactRegistryName");
-const vpcName = infraStack.getOutput("vpcName");
-const publicSubnetName = infraStack.getOutput("publicSubnetName");
+const runtimeSAEmail = infraStack.getOutput("gcpBackendRuntimeSAEmail");
+const artifactRegistryName = infraStack.getOutput("gcpArtifactRegistryName");
+const vpcName = infraStack.getOutput("gcpVpcName");
+const publicSubnetName = infraStack.getOutput("gcpPublicSubnetName");
 
 // Create CloudRun service
 const appImage = pulumi.interpolate`${region}-docker.pkg.dev/${project}/${artifactRegistryName}/afl-tracker-web:${imageTag}`;

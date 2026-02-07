@@ -46,8 +46,8 @@ const service = new gcp.cloudrunv2.Service(cloudRunServiceName, {
       },
     }],
     scaling: {
-      minInstanceCount: 1,
-      maxInstanceCount: 2,
+      minInstanceCount: 0,
+      maxInstanceCount: 1,
     },
   },
 });

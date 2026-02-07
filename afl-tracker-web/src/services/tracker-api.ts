@@ -12,4 +12,13 @@ export default {
     const response = await apiClient.get("/images");
     return response.data;
   },
+
+  async uploadImage(formData: FormData) {
+    const response = await apiClient.post("/images/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  }
 };

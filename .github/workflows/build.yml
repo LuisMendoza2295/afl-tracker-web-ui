@@ -83,6 +83,7 @@ jobs:
         run: |
           ls -lh dist/
           docker build \
+            --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }} \
             -t $IMAGE_NAME:$GITHUB_SHA \
             -t $IMAGE_NAME:latest \
             .

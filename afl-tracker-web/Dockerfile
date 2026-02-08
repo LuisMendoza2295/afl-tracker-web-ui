@@ -2,6 +2,8 @@ FROM node:lts-alpine as build-stage
 WORKDIR /app
 
 ARG ENV_FILE=.env.development
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 
 COPY package*.json ./
 RUN npm ci

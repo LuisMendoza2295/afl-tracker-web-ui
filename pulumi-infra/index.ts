@@ -17,6 +17,7 @@ const runtimeSAEmail = infraStack.getOutput("gcpBackendRuntimeSAEmail");
 const artifactRegistryName = infraStack.getOutput("gcpArtifactRegistryName");
 const vpcName = infraStack.getOutput("gcpVpcName");
 const publicSubnetName = infraStack.getOutput("gcpPublicSubnetName");
+const hostingUrl = infraStack.getOutput("gcpFirebaseHostingUrl");
 
 // Create CloudRun service
 const appImage = pulumi.interpolate`${region}-docker.pkg.dev/${project}/${artifactRegistryName}/afl-tracker-web:${imageTag}`;
@@ -38,6 +39,12 @@ const service = new gcp.cloudrunv2.Service(cloudRunServiceName, {
       ports: {
         containerPort: 8080
       },
+      envs: [
+        {
+          name: "VITE_API_ORIGIN",
+          value: hostingUrl,
+        }
+      ],
       resources: {
         limits: {
           cpu: "1",
@@ -60,3 +67,4 @@ new gcp.cloudrunv2.ServiceIamMember("afl-tracker-web-invoker", {
 });
 
 export const appUrl = service.uri;
+export const firebaseHostingUrl = hostingUrl;

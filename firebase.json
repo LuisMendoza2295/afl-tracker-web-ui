@@ -1,0 +1,13 @@
+{
+  "hosting": {
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "afl-tracker-web-service",
+          "region": "us-central1"
+        }
+      }
+    ]
+  }
+}

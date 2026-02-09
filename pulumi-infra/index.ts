@@ -23,6 +23,7 @@ const hostingUrl = infraStack.getOutput("gcpFirebaseHostingUrl");
 const appImage = pulumi.interpolate`${region}-docker.pkg.dev/${project}/${artifactRegistryName}/afl-tracker-web:${imageTag}`;
 const cloudRunServiceName = config.require("cloudRunServiceName");
 const service = new gcp.cloudrunv2.Service(cloudRunServiceName, {
+  name: cloudRunServiceName,
   location: region,
   ingress: "INGRESS_TRAFFIC_ALL",
   template: {

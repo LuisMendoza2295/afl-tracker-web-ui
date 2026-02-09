@@ -10,6 +10,7 @@ export interface ImageData {
   longitude: number;
   uploadedByName: string;
   uploadedByEmail: string;
+  uploadedByPhotoUrl?: string;
   uploadedAt: string;
 }
 

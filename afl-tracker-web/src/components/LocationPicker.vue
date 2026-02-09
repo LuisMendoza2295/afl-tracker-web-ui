@@ -1,38 +1,37 @@
 <template>
-  <Card class="location-picker-card">
+  <Card class="h-full">
     <template #title>
-      <div class="flex items-center justify-between">
-        <span>Confirm Upload Location</span>
-        <i class="pi pi-map-marker text-blue-600"></i>
+      <div class="flex items-center space-x-2">
+        <i class="pi pi-map-marker text-primary-500"></i>
+        <span>Location</span>
       </div>
     </template>
     <template #content>
-      <div class="space-y-4">
-        <!-- Map -->
-        <div ref="mapContainer" class="map-small"></div>
+      <div class="flex flex-col h-full min-h-[300px]">
 
         <!-- Location Info -->
-        <div class="bg-gray-50 p-3 rounded-lg">
+        <div
+          class="bg-surface-50 dark:bg-surface-800 p-3 rounded-lg mb-4 border border-surface-200 dark:border-surface-700">
           <div class="flex items-start space-x-2">
-            <i class="pi pi-info-circle text-blue-600 mt-1"></i>
+            <i class="pi pi-info-circle text-primary-500 mt-1"></i>
             <div class="text-sm">
-              <p class="font-medium">Location Details</p>
-              <p class="text-gray-600">
-                Latitude: {{ selectedLocation.latitude.toFixed(6) }}<br>
-                Longitude: {{ selectedLocation.longitude.toFixed(6) }}
+              <p class="font-medium text-surface-900 dark:text-surface-0">Selected Coordinates</p>
+              <p class="text-surface-600 dark:text-surface-300 font-mono text-xs mt-1">
+                Lat: {{ modelValue.latitude.toFixed(6) }}<br>
+                Lng: {{ modelValue.longitude.toFixed(6) }}
               </p>
-              <p class="text-xs text-gray-500 mt-1">
-                Drag the marker to adjust the location
+              <p class="text-xs text-surface-500 mt-2">
+                Drag the marker to adjust position.
               </p>
             </div>
           </div>
         </div>
 
-        <!-- Actions -->
-        <div class="flex justify-end space-x-3">
-          <Button label="Cancel" severity="secondary" text @click="emit('cancel')" />
-          <Button label="Confirm Location" icon="pi pi-check" @click="confirmLocation" />
+        <!-- Map -->
+        <div ref="mapContainer"
+          class="flex-grow w-full rounded-lg overflow-hidden border border-surface-200 dark:border-surface-700 min-h-[250px] relative z-0">
         </div>
+
       </div>
     </template>
   </Card>
@@ -42,22 +41,17 @@
 import { ref, onMounted, watch } from 'vue';
 import L from 'leaflet';
 import Card from 'primevue/card';
-import Button from 'primevue/button';
 import type { Location } from '@/types';
 
-interface Props {
-  initialLocation: Location;
-}
-
-const props = defineProps<Props>();
+const props = defineProps<{
+  modelValue: Location;
+}>();
 
 const emit = defineEmits<{
-  confirm: [location: Location];
-  cancel: [];
+  'update:modelValue': [location: Location];
 }>();
 
 const mapContainer = ref<HTMLElement | null>(null);
-const selectedLocation = ref<Location>({ ...props.initialLocation });
 let map: L.Map | null = null;
 let marker: L.Marker | null = null;
 
@@ -66,7 +60,7 @@ onMounted(() => {
 
   // Initialize map
   map = L.map(mapContainer.value).setView(
-    [props.initialLocation.latitude, props.initialLocation.longitude],
+    [props.modelValue.latitude, props.modelValue.longitude],
     15
   );
 
@@ -78,7 +72,7 @@ onMounted(() => {
 
   // Add draggable marker
   marker = L.marker(
-    [props.initialLocation.latitude, props.initialLocation.longitude],
+    [props.modelValue.latitude, props.modelValue.longitude],
     { draggable: true }
   ).addTo(map);
 
@@ -86,36 +80,44 @@ onMounted(() => {
   marker.on('dragend', () => {
     if (!marker) return;
     const pos = marker.getLatLng();
-    selectedLocation.value = {
+    emit('update:modelValue', {
       latitude: pos.lat,
       longitude: pos.lng,
-    };
+    });
   });
+
+  // Attempt detection if this is the initial load
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const newLocation = { latitude, longitude };
+
+        // Emit update
+        emit('update:modelValue', newLocation);
+
+        // Update map view
+        if (map && marker) {
+          map.setView([latitude, longitude], 15);
+          marker.setLatLng([latitude, longitude]);
+        }
+      },
+      (error) => {
+        console.warn('Geolocation failed or denied:', error);
+      }
+    );
+  }
 });
 
-watch(() => props.initialLocation, (newLocation) => {
-  selectedLocation.value = { ...newLocation };
+watch(() => props.modelValue, (newLocation) => {
   if (map && marker) {
-    map.setView([newLocation.latitude, newLocation.longitude], 15);
-    marker.setLatLng([newLocation.latitude, newLocation.longitude]);
+    const currentLatLng = marker.getLatLng();
+    // Only update marker/map if significantly different to verify dragging didn't cause loop
+    if (Math.abs(currentLatLng.lat - newLocation.latitude) > 0.000001 ||
+      Math.abs(currentLatLng.lng - newLocation.longitude) > 0.000001) {
+      marker.setLatLng([newLocation.latitude, newLocation.longitude]);
+      map.panTo([newLocation.latitude, newLocation.longitude]);
+    }
   }
 }, { deep: true });
-
-const confirmLocation = () => {
-  emit('confirm', selectedLocation.value);
-};
 </script>
-
-<style scoped>
-.location-picker-card {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.map-small {
-  height: 300px;
-  width: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-}
-</style>

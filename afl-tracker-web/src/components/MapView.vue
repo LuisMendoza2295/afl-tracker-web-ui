@@ -1,12 +1,20 @@
 <template>
-  <div class="map-container">
+  <div class="map-container relative">
     <div ref="mapContainer" class="map h-full w-full"></div>
+
+    <!-- Loading Overlay -->
+    <div v-if="loading"
+      class="absolute inset-0 z-[1000] bg-white/50 backdrop-blur-sm flex items-center justify-center rounded-lg">
+      <ProgressSpinner />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import L from 'leaflet';
+import ProgressSpinner from 'primevue/progressspinner';
+import { DEFAULT_MAP_CENTER, DEFAULT_ZOOM_LEVEL } from '@/config/map';
 import type { ImageData } from '@/types';
 
 // Fix for default marker icons in Leaflet with Vite
@@ -25,12 +33,14 @@ interface Props {
   images?: ImageData[];
   center?: [number, number];
   zoom?: number;
+  loading?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   images: () => [],
-  center: () => [-37.8136, 144.9631], // Melbourne, Australia (AFL city!)
-  zoom: 12,
+  center: () => DEFAULT_MAP_CENTER,
+  zoom: DEFAULT_ZOOM_LEVEL,
+  loading: false,
 });
 
 const mapContainer = ref<HTMLElement | null>(null);
@@ -83,14 +93,21 @@ function addMarkers() {
       .addTo(map);
 
     // Create popup with image thumbnail
+    const userPhotoHtml = image.uploadedByPhotoUrl
+      ? `<img src="${image.uploadedByPhotoUrl}" class="w-6 h-6 rounded-full object-cover border border-gray-200" alt="${image.uploadedByName}" />`
+      : '';
+
     const popupContent = `
-      <div class="text-center">
+      <div class="text-center min-w-[150px]">
         <img 
           src="${image.url}" 
           alt="Uploaded image" 
-          class="w-32 h-32 object-cover rounded mb-2"
+          class="w-full h-32 object-cover rounded mb-2"
         />
-        <p class="text-sm font-medium">${image.uploadedByName}</p>
+        <div class="flex items-center justify-center gap-2 mb-1">
+          ${userPhotoHtml}
+          <span class="text-sm font-medium truncate max-w-[120px]">${image.uploadedByName}</span>
+        </div>
         <p class="text-xs text-gray-500">${new Date(image.uploadedAt).toLocaleDateString()}</p>
       </div>
     `;
@@ -113,7 +130,14 @@ function addMarkers() {
   flex-direction: column;
   height: 100%;
   width: 100%;
-  min-height: 500px;
+  min-height: 400px;
+  /* Default minimum height for mobile */
+}
+
+@media (min-width: 768px) {
+  .map-container {
+    min-height: 500px;
+  }
 }
 
 .map {

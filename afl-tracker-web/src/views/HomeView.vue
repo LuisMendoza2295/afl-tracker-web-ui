@@ -1,29 +1,27 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <div class="container mx-auto px-4 py-8">
+  <div class="flex flex-col h-full">
+    <div class="container mx-auto px-4 py-4 md:py-8 flex flex-col h-full relative">
       <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">AFL Tracker Map</h1>
-        <p class="text-gray-600">View all uploaded images on the map</p>
-      </div>
-
-      <!-- Loading State -->
-      <div v-if="isLoading" class="flex justify-center items-center h-96">
-        <ProgressSpinner />
+        <h1 class="text-2xl md:text-3xl font-bold text-surface-900 dark:text-surface-0 mb-2">AFL Tracker Map</h1>
+        <p class="text-surface-600 dark:text-surface-400">View all uploaded images on the map.</p>
       </div>
 
       <!-- Error State -->
-      <Message v-else-if="error" severity="error" class="mb-4">
+      <Message v-if="error" severity="error" class="mb-4 flex-shrink-0">
         Error loading images: {{ error.message }}
       </Message>
 
       <!-- Map -->
-      <div v-else class="bg-white rounded-lg shadow-lg p-4">
-        <MapView :images="images" />
+      <div v-else class="bg-teal-500 rounded-md shadow-md p-1 md:p- relative h-[65vh] w-full">
+        <MapView :images="images" :loading="isLoading" class="w-full h-full rounded-md overflow-hidden" />
       </div>
 
-      <!-- Upload FAB for authenticated users -->
-      <Button v-if="isAuthenticated" icon="pi pi-plus" rounded class="fixed bottom-8 right-8 shadow-lg" size="large"
-        @click="router.push('/upload')" v-tooltip.left="'Upload Image'" />
+      <!-- Upload Button for authenticated users -->
+      <div v-if="isAuthenticated" class="mt-4 flex-shrink-0">
+        <Button label="Upload New Image" icon="pi pi-upload mr-3" class="w-full !border-none !py-3 md:!py-4"
+          severity="primary" size="large" @click="router.push('/upload')">
+        </Button>
+      </div>
     </div>
   </div>
 </template>
@@ -33,7 +31,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from 'primevue/button';
 import Message from 'primevue/message';
-import ProgressSpinner from 'primevue/progressspinner';
 import MapView from '@/components/MapView.vue';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/services/tracker-api';

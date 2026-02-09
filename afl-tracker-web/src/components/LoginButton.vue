@@ -1,6 +1,5 @@
 <template>
-  <Button @click="handleLogin" icon="pi pi-google" label="Sign in with Google" class="p-button-outlined"
-    severity="secondary" />
+  <Button @click="handleLogin" icon="pi pi-google" label="Sign in with Google" severity="info" />
 </template>
 
 <script setup lang="ts">

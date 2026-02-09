@@ -1,18 +1,18 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex items-center justify-center">
+  <div class="min-h-screen h-full flex items-center justify-center">
     <Card class="max-w-md">
       <template #content>
         <div class="text-center py-8">
           <ProgressSpinner v-if="isProcessing" />
           <div v-else-if="error">
             <i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-4"></i>
-            <p class="text-lg font-medium text-gray-700 mb-2">Authentication Failed</p>
+            <p class="text-lg font-medium secondary mb-2">Authentication Failed</p>
             <p class="text-gray-600 mb-4">{{ error }}</p>
             <Button label="Return Home" @click="router.push('/')" />
           </div>
           <div v-else>
-            <i class="pi pi-check-circle text-4xl text-green-500 mb-4"></i>
-            <p class="text-lg font-medium text-gray-700">Authentication successful!</p>
+            <i class="pi pi-check-circle text-4xl mb-4"></i>
+            <p class="text-lg font-medium secondary mb-2">Authentication successful!</p>
             <p class="text-gray-600">Redirecting...</p>
           </div>
         </div>

@@ -14,6 +14,7 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@primevue/themes": "^4.5.4",
     "@vue-leaflet/vue-leaflet": "^0.10.1",
     "axios": "^1.13.2",
     "leaflet": "^1.9.4",

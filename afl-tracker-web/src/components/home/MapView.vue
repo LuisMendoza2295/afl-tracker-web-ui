@@ -11,11 +11,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { createApp } from 'vue';
+import PrimeVue from 'primevue/config';
+import MyPreset from '@/config/primevue-preset';
 import L from 'leaflet';
 import ProgressSpinner from 'primevue/progressspinner';
 import { DEFAULT_MAP_CENTER, DEFAULT_ZOOM_LEVEL } from '@/config/map';
 import type { ImageData } from '@/types';
+import ImageMarkerPopup from './ImageMarkerPopup.vue';
 
 // Fix for default marker icons in Leaflet with Vite
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -46,6 +50,8 @@ const props = withDefaults(defineProps<Props>(), {
 const mapContainer = ref<HTMLElement | null>(null);
 let map: L.Map | null = null;
 const markers: L.Marker[] = [];
+// Track mounted Vue app instances so we can unmount them when markers are cleared
+const popupApps: ReturnType<typeof createApp>[] = [];
 
 onMounted(() => {
   if (!mapContainer.value) return;
@@ -63,6 +69,12 @@ onMounted(() => {
   addMarkers();
 });
 
+onUnmounted(() => {
+  // Clean up all mounted popup Vue app instances
+  popupApps.forEach(app => app.unmount());
+  popupApps.length = 0;
+});
+
 watch(() => props.images, () => {
   addMarkers();
 }, { deep: true });
@@ -75,7 +87,9 @@ function addMarkers() {
 
   console.log('MapView: Adding markers for', props.images.length, 'images');
 
-  // Clear existing markers
+  // Unmount existing popup Vue apps and clear markers
+  popupApps.forEach(app => app.unmount());
+  popupApps.length = 0;
   markers.forEach(marker => marker.remove());
   markers.length = 0;
 
@@ -89,30 +103,18 @@ function addMarkers() {
       return;
     }
 
-    const marker = L.marker([lat, lng])
-      .addTo(map);
+    const marker = L.marker([lat, lng]).addTo(map);
 
-    // Create popup with image thumbnail
-    const userPhotoHtml = image.uploadedByPhotoUrl
-      ? `<img src="${image.uploadedByPhotoUrl}" class="w-6 h-6 rounded-full object-cover border border-gray-200" alt="${image.uploadedByName}" />`
-      : '';
+    // Mount ImageMarkerPopup as a live Vue component into a real DOM node.
+    // This is required for PrimeVue Image's preview/lightbox to work correctly
+    // since it registers reactive click handlers and teleports the overlay to <body>.
+    const popupEl = document.createElement('div');
+    const popupApp = createApp(ImageMarkerPopup, { image });
+    popupApp.use(PrimeVue, { theme: { preset: MyPreset, options: { darkModeSelector: '.my-app-dark' } } });
+    popupApp.mount(popupEl);
 
-    const popupContent = `
-      <div class="text-center min-w-[150px]">
-        <img 
-          src="${image.url}" 
-          alt="Uploaded image" 
-          class="w-full h-32 object-cover rounded mb-2"
-        />
-        <div class="flex items-center justify-center gap-2 mb-1">
-          ${userPhotoHtml}
-          <span class="text-sm font-medium truncate max-w-[120px]">${image.uploadedByName}</span>
-        </div>
-        <p class="text-xs text-gray-500">${new Date(image.uploadedAt).toLocaleDateString()}</p>
-      </div>
-    `;
-    marker.bindPopup(popupContent);
-
+    marker.bindPopup(popupEl);
+    popupApps.push(popupApp);
     markers.push(marker);
   });
 
@@ -123,6 +125,7 @@ function addMarkers() {
   }
 }
 </script>
+
 
 <style scoped>
 .map-container {

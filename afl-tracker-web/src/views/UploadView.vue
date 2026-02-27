@@ -67,9 +67,9 @@ import { useToast } from 'primevue/usetoast';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 
-import LoginButton from '@/components/LoginButton.vue';
-import ImageSelector from '@/components/ImageSelector.vue';
-import LocationPicker from '@/components/LocationPicker.vue';
+import LoginButton from '@/components/common/LoginButton.vue';
+import ImageSelector from '@/components/upload/ImageSelector.vue';
+import LocationPicker from '@/components/upload/LocationPicker.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();

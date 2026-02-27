@@ -31,7 +31,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from 'primevue/button';
 import Message from 'primevue/message';
-import MapView from '@/components/MapView.vue';
+import MapView from '@/components/home/MapView.vue';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/services/tracker-api';
 import type { ImageData } from '@/types';
